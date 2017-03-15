@@ -38,33 +38,38 @@ public class DownloadTask implements Runnable {
       int code = msg.what;
       if (mListener == null) return;
       switch (code) {
+        case TaskStatus.STATUS_INIT:
+          L.i(mTaskBundle.getKey() + " STATUS_INIT");
+          mListener.onConnecting(mTaskBundle);
+          break;
+
         case TaskStatus.STATUS_QUEUE:
           L.i(mTaskBundle.getKey() + " STATUS_QUEUE");
-          mListener.onQueue(DownloadTask.this);
+          mListener.onQueue(mTaskBundle);
           break;
         case TaskStatus.STATUS_CONNECTING:
           L.i(mTaskBundle.getKey() + " STATUS_CONNECTING");
-          mListener.onConnecting(DownloadTask.this);
+          mListener.onConnecting(mTaskBundle);
           break;
         case TaskStatus.STATUS_PAUSE:
           L.i(mTaskBundle.getKey() + " STATUS_PAUSE");
-          mListener.onPause(DownloadTask.this);
+          mListener.onPause(mTaskBundle);
           break;
         case TaskStatus.STATUS_CANCEL:
           L.i(mTaskBundle.getKey() + " STATUS_CANCEL");
-          mListener.onCancel(DownloadTask.this);
+          mListener.onCancel(mTaskBundle);
           break;
         case TaskStatus.STATUS_ERROR_NET:
           L.i(mTaskBundle.getKey() + " STATUS_ERROR_NET");
-          mListener.onError(DownloadTask.this, TaskStatus.STATUS_ERROR_NET);
+          mListener.onError(mTaskBundle, TaskStatus.STATUS_ERROR_NET);
           break;
         case TaskStatus.STATUS_ERROR_STORAGE:
           L.i(mTaskBundle.getKey() + " STATUS_ERROR_STORAGE");
-          mListener.onError(DownloadTask.this, TaskStatus.STATUS_ERROR_STORAGE);
+          mListener.onError(mTaskBundle, TaskStatus.STATUS_ERROR_STORAGE);
           break;
         case TaskStatus.STATUS_FINISHED:
           L.i(mTaskBundle.getKey() + " STATUS_FINISHED");
-          mListener.onFinish(DownloadTask.this);
+          mListener.onFinish(mTaskBundle);
           break;
       }
     }
@@ -152,6 +157,7 @@ public class DownloadTask implements Runnable {
           if (buffOffset >= updateSize) {
             buffOffset = 0;
             mDao.updateTaskEntity(mTaskEntity);
+            L.i("download ing " + mTaskBundle.getKey() + " " + mTaskEntity.getFileName());
             //mDownloadDao.updateTaskEntity(mTaskEntity);
             //handler.sendEmptyMessage(TaskStatus.TASK_STATUS_DOWNLOADING);
           }
@@ -162,9 +168,6 @@ public class DownloadTask implements Runnable {
           if (mTaskEntity.getCompletedSize() == mTaskEntity.getTotalSize()) {
             mTaskEntity.setFinish(true);
             mDao.updateTaskEntity(mTaskEntity);
-            mTaskBundle.setCompleteSize(mTaskBundle.getCompleteSize() + 1);
-            //通知UI 设置数据库
-            updateStatus(TaskStatus.STATUS_CONNECTING);
           }
         }
       } else {

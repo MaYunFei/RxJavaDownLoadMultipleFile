@@ -1,6 +1,10 @@
 package io.github.mayunfei.download_multiple_file.download;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.util.Log;
+import android.widget.Toast;
 import io.github.mayunfei.download_multiple_file.db.DownloadDao;
 import io.github.mayunfei.download_multiple_file.entity.TaskBundle;
 import io.github.mayunfei.download_multiple_file.entity.TaskStatus;
@@ -50,7 +54,10 @@ public class DownloadManager {
         new LinkedBlockingQueue<Runnable>());
     mThreadQueue = (LinkedBlockingQueue<Runnable>) mExecutor.getQueue();
     if (retrofit == null) {
-      retrofit = new Retrofit.Builder().baseUrl("http://blog.csdn.net/zggzcgy/article/details/23987637/").client(getOkHttpClient()).build();
+      retrofit =
+          new Retrofit.Builder().baseUrl("http://blog.csdn.net/zggzcgy/article/details/23987637/")
+              .client(getOkHttpClient())
+              .build();
     }
     mRetrofit = retrofit;
     //下载api
@@ -72,20 +79,34 @@ public class DownloadManager {
 
   /**
    * 添加任务
-   * @param taskBundle
    */
-  public void addTaskBundle(TaskBundle taskBundle) {
+  public void addTaskBundle(@NonNull TaskBundle taskBundle) {
     DownloadTask currentTask = mCurrentTaskList.get(taskBundle.getKey());
-    if (currentTask != null){
+    if (currentTask != null) {
       addDownLoadTask(currentTask);
-    }else {
+    } else {
       DownloadTask downloadTask = new DownloadTask();
       downloadTask.setTaskBundle(taskBundle);
       addDownLoadTask(downloadTask);
     }
   }
 
-  private void addDownLoadTask(DownloadTask downloadTask) {
+  public void bindListener(@NonNull TaskBundle taskBundle,
+      @Nullable DownloadTaskListener downloadTaskListener) {
+    bindListener(taskBundle.getKey(), downloadTaskListener);
+  }
+
+  public void bindListener(@NonNull String key,
+      @Nullable DownloadTaskListener downloadTaskListener) {
+    DownloadTask downloadTask = mCurrentTaskList.get(key);
+    if (downloadTask == null) {
+      Log.e("DownLoadManager", "必须先启动下载才能监听");
+    } else {
+      downloadTask.setDownLoadListener(downloadTaskListener);
+    }
+  }
+
+  private void addDownLoadTask(@NonNull DownloadTask downloadTask) {
     //是否已经添加
     DownloadTask tempDownloadTask = mCurrentTaskList.get(downloadTask.getTaskBundle().getKey());
     TaskBundle taskBundle = downloadTask.getTaskBundle();
@@ -100,6 +121,18 @@ public class DownloadManager {
     }
     if (mExecutor.getTaskCount() > mThreadCount) {
       downloadTask.queue();
+    }
+  }
+
+  public void pause(String key) {
+    DownloadTask downloadTask = mCurrentTaskList.get(key);
+    if (downloadTask != null) {
+      if (mThreadQueue.contains(downloadTask)) {
+        mThreadQueue.remove(downloadTask);
+      }
+      downloadTask.pause();
+    } else {
+      Log.e("DownLoadManager", "必须先启动下载才能暂停");
     }
   }
 }

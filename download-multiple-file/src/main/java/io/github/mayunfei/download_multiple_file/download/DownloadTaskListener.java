@@ -1,39 +1,41 @@
 package io.github.mayunfei.download_multiple_file.download;
 
+import io.github.mayunfei.download_multiple_file.entity.TaskBundle;
+
 /**
  * Created by mayunfei on 17-3-15.
  */
 
 public interface DownloadTaskListener {
-  void onQueue(DownloadTask downloadTask);
+  void onQueue(TaskBundle bundle);
 
   /**
    * connecting
    */
-  void onConnecting(DownloadTask downloadTask);
+  void onConnecting(TaskBundle bundle);
 
   /**
    * downloading
    */
-  void onStart(DownloadTask downloadTask);
+  void onStart(TaskBundle bundle);
 
   /**
    * pauseTask
    */
-  void onPause(DownloadTask downloadTask);
+  void onPause(TaskBundle bundle);
 
   /**
    * cancel
    */
-  void onCancel(DownloadTask downloadTask);
+  void onCancel(TaskBundle bundle);
 
   /**
    * success
    */
-  void onFinish(DownloadTask downloadTask);
+  void onFinish(TaskBundle bundle);
 
   /**
    * failure
    */
-  void onError(DownloadTask downloadTask, int code);
+  void onError(TaskBundle bundle, int code);
 }
