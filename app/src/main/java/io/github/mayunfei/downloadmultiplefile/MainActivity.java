@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-    mBtn1 = ((Button)findViewById(R.id.btn_1));
+    mBtn1 = ((Button) findViewById(R.id.btn_1));
 
     if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
         != PackageManager.PERMISSION_GRANTED) {
@@ -103,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
 
       }
     });
-
   }
 
   void testDownloadManager() {
@@ -119,16 +118,13 @@ public class MainActivity extends AppCompatActivity {
         getTestTaskEntity(FileUtils.getDefaultFilePath(), "CloudMusic_2.8.1_official_4.apk",
             "http://s1.music.126.net/download/android/CloudMusic_2.8.1_official_4.apk"));
     taskBundle.setTaskList(taskEntityList);
+    taskBundle.setArg0("https://md.dongaocloud.com/2b4f/2b52/5b3/81e/61e08244fcd53892b90031ee873de2b2/video.m3u8");
     taskBundle.setTotalSize(taskBundle.getTaskList().size());
     DownloadManager.getInstance().addTaskBundle(taskBundle);
   }
 
   TaskEntity getTestTaskEntity(String path, String name, String url) {
-    TaskEntity taskEntity = new TaskEntity();
-    taskEntity.setUrl(url);
-    taskEntity.setFilePath(path);
-    taskEntity.setFileName(name);
-    return taskEntity;
+    return TaskEntity.newBuilder().url(url).filePath(path).fileName(name).build();
   }
 
   void daoTest() {
@@ -136,10 +132,9 @@ public class MainActivity extends AppCompatActivity {
     TaskBundle taskBundle = new TaskBundle();
     taskBundle.setStatus(TaskStatus.STATUS_INIT);
     taskBundle.setKey("123");
+    taskBundle.setArg0("https://md.dongaocloud.com/2b4f/2b52/5b3/81e/61e08244fcd53892b90031ee873de2b2/video.m3u8");
     List<TaskEntity> taskEntityList = new ArrayList<>();
-    TaskEntity taskEntity = new TaskEntity();
-    taskEntity.setUrl("null");
-    taskEntityList.add(taskEntity);
+    taskEntityList.add(TaskEntity.newBuilder().url("123").build());
     taskBundle.setTaskList(taskEntityList);
     mDao.insertTaskBundle(taskBundle);
   }

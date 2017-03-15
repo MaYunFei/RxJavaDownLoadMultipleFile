@@ -55,6 +55,21 @@ public class TaskEntity {
   //已经完成的大小 用于断点续传
   private long completedSize;
 
+  private TaskEntity(Builder builder) {
+    setTaskBundleId(builder.taskBundleId);
+    setTaskId(builder.taskId);
+    setFinish(builder.isFinish);
+    setUrl(builder.url);
+    setFileName(builder.fileName);
+    setFilePath(builder.filePath);
+    setTotalSize(builder.totalSize);
+    setCompletedSize(builder.completedSize);
+  }
+
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
   public int getTaskBundleId() {
     return taskBundleId;
   }
@@ -117,5 +132,63 @@ public class TaskEntity {
 
   public void setCompletedSize(long completeSize) {
     this.completedSize = completeSize;
+  }
+
+  public static final class Builder {
+    private int taskBundleId;
+    private int taskId;
+    private boolean isFinish;
+    private String url;
+    private String fileName;
+    private String filePath;
+    private long totalSize;
+    private long completedSize;
+
+    private Builder() {
+    }
+
+    public Builder taskBundleId(int val) {
+      taskBundleId = val;
+      return this;
+    }
+
+    public Builder taskId(int val) {
+      taskId = val;
+      return this;
+    }
+
+    public Builder isFinish(boolean val) {
+      isFinish = val;
+      return this;
+    }
+
+    public Builder url(String val) {
+      url = val;
+      return this;
+    }
+
+    public Builder fileName(String val) {
+      fileName = val;
+      return this;
+    }
+
+    public Builder filePath(String val) {
+      filePath = val;
+      return this;
+    }
+
+    public Builder totalSize(long val) {
+      totalSize = val;
+      return this;
+    }
+
+    public Builder completedSize(long val) {
+      completedSize = val;
+      return this;
+    }
+
+    public TaskEntity build() {
+      return new TaskEntity(this);
+    }
   }
 }

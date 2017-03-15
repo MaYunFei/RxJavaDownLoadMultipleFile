@@ -7,6 +7,7 @@ import io.github.mayunfei.download_multiple_file.db.DownloadDao;
 import io.github.mayunfei.download_multiple_file.entity.TaskBundle;
 import io.github.mayunfei.download_multiple_file.entity.TaskEntity;
 import io.github.mayunfei.download_multiple_file.entity.TaskStatus;
+import io.github.mayunfei.download_multiple_file.parser.M3u8Parser;
 import io.github.mayunfei.download_multiple_file.utils.IOUtils;
 import io.github.mayunfei.download_multiple_file.utils.L;
 import java.io.BufferedInputStream;
@@ -15,7 +16,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -30,7 +30,7 @@ public class DownloadTask implements Runnable {
   private Retrofit retrofit;
   private DownloadDao mDao;
   private TaskBundle mTaskBundle;
-  private DownloadApi downloadApi;
+  private DownloadApi mDownloadApi;
   private DownloadTaskListener mListener;
 
   private Handler mHandler = new Handler(Looper.getMainLooper()) {
@@ -88,7 +88,29 @@ public class DownloadTask implements Runnable {
   }
 
   @Override public void run() {
-
+    if (isCancel()) {
+      return;
+    }
+    if (!mTaskBundle.isInit()) {
+      if (mTaskBundle.getArg0() != null) {
+        M3u8Parser m3u8Parser = new M3u8Parser(mDownloadApi, mTaskBundle.getArg0());
+        if (!m3u8Parser.parseTask(mTaskBundle)) {
+          //过滤暂停状态
+          if (mTaskBundle.getStatus() != TaskStatus.STATUS_PAUSE
+              && mTaskBundle.getStatus() != TaskStatus.STATUS_CANCEL) {
+            updateStatus(TaskStatus.STATUS_ERROR_NET);
+          }
+          return;
+        }
+      }
+    }
+    //下载列表还是0
+    if (mTaskBundle.getTaskList() == null || mTaskBundle.getTaskList().size() == 0) {
+      updateStatus(TaskStatus.STATUS_ERROR_NET);
+      return;
+    }
+    mTaskBundle.setTotalSize(mTaskBundle.getTaskList().size());
+    mTaskBundle.setInit(true);
     updateStatus(TaskStatus.STATUS_INIT);
     //开始下载
     List<TaskEntity> taskList = mTaskBundle.getTaskList();
@@ -130,7 +152,7 @@ public class DownloadTask implements Runnable {
       tempFile.seek(completeSize);
       String range = "bytes=" + completeSize + "-";
 
-      Call<ResponseBody> download = downloadApi.download(range, mTaskEntity.getUrl());
+      Call<ResponseBody> download = mDownloadApi.download(range, mTaskEntity.getUrl());
 
       Response<ResponseBody> response = download.execute();
 
@@ -185,18 +207,20 @@ public class DownloadTask implements Runnable {
 
   public void updateStatus(int status) {
     mTaskBundle.setStatus(status);
-    switch (status) {
-      case TaskStatus.STATUS_INIT:
-      case TaskStatus.STATUS_QUEUE:
-        break;
-      case TaskStatus.STATUS_FINISHED:
-      case TaskStatus.STATUS_PAUSE:
-      case TaskStatus.STATUS_CONNECTING:
-      case TaskStatus.STATUS_ERROR_NET:
-      case TaskStatus.STATUS_ERROR_STORAGE:
-        mDao.UpdateTaskBundle(mTaskBundle);
-        break;
-    }
+    //switch (status) {
+    //  case TaskStatus.STATUS_INIT:
+    //  case TaskStatus.STATUS_QUEUE:
+    //
+    //    break;
+    //  case TaskStatus.STATUS_FINISHED:
+    //  case TaskStatus.STATUS_PAUSE:
+    //  case TaskStatus.STATUS_CONNECTING:
+    //  case TaskStatus.STATUS_ERROR_NET:
+    //  case TaskStatus.STATUS_ERROR_STORAGE:
+    //    mDao.UpdateTaskBundle(mTaskBundle);
+    //    break;
+    //}
+    mDao.UpdateTaskBundle(mTaskBundle);
     mHandler.sendEmptyMessage(status);
   }
 
@@ -230,10 +254,15 @@ public class DownloadTask implements Runnable {
   }
 
   public DownloadApi getDownloadApi() {
-    return downloadApi;
+    return mDownloadApi;
   }
 
   public void setDownloadApi(DownloadApi downloadApi) {
-    this.downloadApi = downloadApi;
+    this.mDownloadApi = downloadApi;
+  }
+
+  public void start() {
+    mDao.insertTaskBundle(mTaskBundle);
+    updateStatus(TaskStatus.STATUS_START);
   }
 }

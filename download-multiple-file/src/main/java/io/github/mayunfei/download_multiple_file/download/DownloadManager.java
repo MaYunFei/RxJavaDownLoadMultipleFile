@@ -81,12 +81,18 @@ public class DownloadManager {
    * 添加任务
    */
   public void addTaskBundle(@NonNull TaskBundle taskBundle) {
+    //插入数据库
     DownloadTask currentTask = mCurrentTaskList.get(taskBundle.getKey());
     if (currentTask != null) {
       addDownLoadTask(currentTask);
     } else {
       DownloadTask downloadTask = new DownloadTask();
+      //配置任务
+      downloadTask.setDao(mDao);
+      downloadTask.setDownloadApi(mDownloadApi);
+      downloadTask.setRetrofit(mRetrofit);
       downloadTask.setTaskBundle(taskBundle);
+      downloadTask.start();
       addDownLoadTask(downloadTask);
     }
   }
@@ -107,14 +113,9 @@ public class DownloadManager {
   }
 
   private void addDownLoadTask(@NonNull DownloadTask downloadTask) {
-    //是否已经添加
-    DownloadTask tempDownloadTask = mCurrentTaskList.get(downloadTask.getTaskBundle().getKey());
+
     TaskBundle taskBundle = downloadTask.getTaskBundle();
     if (taskBundle == null || taskBundle.getStatus() == TaskStatus.STATUS_FINISHED) return;
-    //配置任务
-    downloadTask.setDownloadApi(mDownloadApi);
-    downloadTask.setDao(mDao);
-    downloadTask.setRetrofit(mRetrofit);
     mCurrentTaskList.put(taskBundle.getKey(), downloadTask);
     if (!mThreadQueue.contains(downloadTask)) {
       mExecutor.execute(downloadTask);

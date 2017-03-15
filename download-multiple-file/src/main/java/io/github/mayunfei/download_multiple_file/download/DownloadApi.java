@@ -33,4 +33,7 @@ public interface DownloadApi {
    * 非断点下载
    */
   @GET Observable<Response<ResponseBody>> downloadFile(@Url String fileUrl);
+
+
+  @GET Call<ResponseBody> requestM3u8(@Url String m3u8Url);
 }

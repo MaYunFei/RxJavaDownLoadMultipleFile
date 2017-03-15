@@ -16,6 +16,7 @@ public class TaskBundle {
   public static final String COLUMN_TOTAL_SIZE = "totalSize";
   public static final String COLUMN_COMPLETED_SIZE = "completeSize";
   public static final String COLUMN_STATUS = "status";
+  public static final String COLUMN_IS_INIT = "status";
   public static final String COLUMN_ARG0 = "arg0";
   public static final String COLUMN_ARG1 = "arg1";
   public static final String COLUMN_ARG2 = "arg2";
@@ -37,6 +38,10 @@ public class TaskBundle {
       + " INTEGER,"
       + COLUMN_FILEPATH
       + " TEXT,"
+      + COLUMN_IS_INIT
+      + " BOOLEAN NOT NULL CHECK ("
+      + COLUMN_IS_INIT
+      + " IN (0,1)),"
       + COLUMN_ARG0
       + " TEXT,"
       + COLUMN_ARG1
@@ -52,6 +57,7 @@ public class TaskBundle {
   private int totalSize;
   private int completeSize;
   private int status;
+  private boolean isInit;
   private List<TaskEntity> taskList;
   private String arg0;
   private String arg1;
@@ -111,6 +117,14 @@ public class TaskBundle {
 
   public void setTaskList(List<TaskEntity> taskList) {
     this.taskList = taskList;
+  }
+
+  public boolean isInit() {
+    return isInit;
+  }
+
+  public void setInit(boolean init) {
+    isInit = init;
   }
 
   public String getArg0() {
