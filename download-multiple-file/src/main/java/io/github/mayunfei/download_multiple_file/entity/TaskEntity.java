@@ -15,24 +15,24 @@ public class TaskEntity {
   public static final String COLUMN_FILENAME = "fileName";
   public static final String COLUMN_FILEPATH = "filePath";
   public static final String COLUMN_TOTAL_SIZE = "totalSize";
-  public static final String COLUMN_COMPLETE_SIZE = "completeSize";
+  public static final String COLUMN_COMPLETED_SIZE = "completedSize";
   public static final String CREATE_SQL = "CREATE TABLE if not exists "
       +
       TASK_TABLE_NAME
       + "("
       + COLUMN_TASK_ID
-      + " INTEGER PRIMARY KEY,"
+      + " INTEGER PRIMARY KEY AUTOINCREMENT,"
       + COLUMN_TASK_BUNDLE_ID
       + " INTEGER,"
       + COLUMN_IS_FINISH
       + " BOOLEAN NOT NULL CHECK ("
       + COLUMN_IS_FINISH
-      + " IN (0,1),"
+      + " IN (0,1)),"
       + COLUMN_URL
-      + " TEXT,"
+      + " TEXT UNIQUE,"
       + COLUMN_TOTAL_SIZE
       + " LONG,"
-      + COLUMN_COMPLETE_SIZE
+      + COLUMN_COMPLETED_SIZE
       + " LONG,"
       + COLUMN_FILENAME
       + " TEXT,"
@@ -51,7 +51,71 @@ public class TaskEntity {
   //文件地址
   private String filePath;
   //总共大小
-  private Long totalSize;
+  private long totalSize;
   //已经完成的大小 用于断点续传
-  private Long completeSize;
+  private long completedSize;
+
+  public int getTaskBundleId() {
+    return taskBundleId;
+  }
+
+  public void setTaskBundleId(int taskBundleId) {
+    this.taskBundleId = taskBundleId;
+  }
+
+  public int getTaskId() {
+    return taskId;
+  }
+
+  public void setTaskId(int taskId) {
+    this.taskId = taskId;
+  }
+
+  public boolean isFinish() {
+    return isFinish;
+  }
+
+  public void setFinish(boolean finish) {
+    isFinish = finish;
+  }
+
+  public String getUrl() {
+    return url;
+  }
+
+  public void setUrl(String url) {
+    this.url = url;
+  }
+
+  public String getFileName() {
+    return fileName;
+  }
+
+  public void setFileName(String fileName) {
+    this.fileName = fileName;
+  }
+
+  public String getFilePath() {
+    return filePath;
+  }
+
+  public void setFilePath(String filePath) {
+    this.filePath = filePath;
+  }
+
+  public long getTotalSize() {
+    return totalSize;
+  }
+
+  public void setTotalSize(long totalSize) {
+    this.totalSize = totalSize;
+  }
+
+  public long getCompletedSize() {
+    return completedSize;
+  }
+
+  public void setCompletedSize(long completeSize) {
+    this.completedSize = completeSize;
+  }
 }

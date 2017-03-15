@@ -14,11 +14,11 @@ public class TaskStatus {
   //暂停
   public static final int STATUS_PAUSE = 3;
   //取消
-  public static final int STATUS_CANCLE = 4;
+  public static final int STATUS_CANCEL = 4;
   //网络异常
   public static final int STATUS_ERROR_NET = 5;
   //存储异常
   public static final int STATUS_ERROR_STORAGE = 6;
   //下载完成
-  public static final int STATUS_FINIDHED = 7;
+  public static final int STATUS_FINISHED = 7;
 }
