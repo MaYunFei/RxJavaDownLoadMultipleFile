@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
   private Button mBtn2;
   private Button mBtn3;
   private Button mBtn4;
+  private Button mBtn5;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -37,12 +38,14 @@ public class MainActivity extends AppCompatActivity {
     mBtn2 = ((Button) findViewById(R.id.btn_2));
     mBtn3 = ((Button) findViewById(R.id.btn_3));
     mBtn4 = ((Button) findViewById(R.id.btn_4));
+    mBtn5 = ((Button) findViewById(R.id.btn_5));
 
-    mBtn4.setOnClickListener(new View.OnClickListener() {
+    mBtn5.setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         DownloadListActivity.startDownloadActivity(MainActivity.this);
       }
     });
+
     if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
         != PackageManager.PERMISSION_GRANTED) {
       ActivityCompat.requestPermissions(this,
@@ -51,14 +54,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //daoTest();
-    mBtn2.setOnClickListener(new View.OnClickListener() {
-      @Override public void onClick(View v) {
-        DownloadManager.getInstance().pause("456");
-      }
-    });
     mBtn1.setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         testDownloadManager();
+      }
+    });
+    mBtn2.setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        testDownloadManager2();
+      }
+    });
+    mBtn3.setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        testDownloadManager3();
+      }
+    });
+    mBtn4.setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        testDownloadManager4();
       }
     });
   }
@@ -66,29 +79,41 @@ public class MainActivity extends AppCompatActivity {
   void testDownloadManager() {
     TaskBundle taskBundle = new TaskBundle();
     taskBundle.setStatus(TaskStatus.STATUS_INIT);
-    taskBundle.setKey("456");
-    taskBundle.setFilePath(FileUtils.getDefaultFilePath());
+    taskBundle.setKey("task1");
+    taskBundle.setFilePath(FileUtils.getDefaultFilePath() + "task1/");
     taskBundle.setM3u8(
         "https://md.dongaocloud.com/2b4f/2b52/5b3/81e/61e08244fcd53892b90031ee873de2b2/video.m3u8");
     taskBundle.setHtml("http://www.dongao.com/");
     DownloadManager.getInstance().addTaskBundle(taskBundle);
   }
+
   void testDownloadManager2() {
     TaskBundle taskBundle = new TaskBundle();
     taskBundle.setStatus(TaskStatus.STATUS_INIT);
-    taskBundle.setKey("456");
-    taskBundle.setFilePath(FileUtils.getDefaultFilePath());
+    taskBundle.setKey("task2");
+    taskBundle.setFilePath(FileUtils.getDefaultFilePath() + "task2/");
     taskBundle.setM3u8(
-        "https://md.dongaocloud.com/2b4f/2b52/5b3/81e/61e08244fcd53892b90031ee873de2b2/video.m3u8");
+        "https://md.dongaocloud.com/2b4f/2b52/5b3/81e/5e624b842fe6eb2ff39d07c966c84055/video.m3u8");
     DownloadManager.getInstance().addTaskBundle(taskBundle);
   }
-  void testDownloadManage3() {
+
+  void testDownloadManager3() {
     TaskBundle taskBundle = new TaskBundle();
     taskBundle.setStatus(TaskStatus.STATUS_INIT);
-    taskBundle.setKey("456");
-    taskBundle.setFilePath(FileUtils.getDefaultFilePath());
+    taskBundle.setKey("task3");
+    taskBundle.setFilePath(FileUtils.getDefaultFilePath() + "task3/");
     taskBundle.setM3u8(
-        "https://md.dongaocloud.com/2b4f/2b52/5b3/81e/61e08244fcd53892b90031ee873de2b2/video.m3u8");
+        "https://md.dongaocloud.com/2b4f/2b52/5b3/81e/014423b6e2d448dca612a69ba9854ddc/video.m3u8");
+    DownloadManager.getInstance().addTaskBundle(taskBundle);
+  }
+
+  void testDownloadManager4() {
+    TaskBundle taskBundle = new TaskBundle();
+    taskBundle.setStatus(TaskStatus.STATUS_INIT);
+    taskBundle.setKey("task4");
+    taskBundle.setFilePath(FileUtils.getDefaultFilePath() + "task4/");
+    taskBundle.setM3u8(
+        "https://md.dongaocloud.com/2b4f/2b52/5b3/81e/b2eedd06137ec7c0da664c3e32ff7b3c/video.m3u8");
     DownloadManager.getInstance().addTaskBundle(taskBundle);
   }
 

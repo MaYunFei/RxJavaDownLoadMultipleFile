@@ -5,15 +5,28 @@
     android:orientation="horizontal"
     android:padding="6dp"
     >
-
-  <TextView
-      android:id="@+id/tv_key"
+  <LinearLayout
       android:layout_width="0dp"
       android:layout_height="wrap_content"
-      android:layout_centerVertical="true"
       android:layout_weight="1"
-      android:text="@string/app_name"
-      />
+      android:gravity="center_vertical"
+      android:orientation="vertical"
+      >
+    <TextView
+        android:id="@+id/tv_key"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:text="@string/app_name"
+        />
+    <android.support.v4.widget.ContentLoadingProgressBar
+        android:id="@+id/progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?android:attr/progressBarStyleHorizontal"
+        />
+  </LinearLayout>
+
   <Button
       android:id="@+id/btn_status"
       android:layout_width="wrap_content"

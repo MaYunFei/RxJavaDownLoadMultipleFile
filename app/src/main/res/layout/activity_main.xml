@@ -21,17 +21,24 @@
       />
   <Button
       android:id="@+id/btn_2"
-      android:text="暂停"
+      android:text="开始"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       />
   <Button
       android:id="@+id/btn_3"
+      android:text="开始"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       />
   <Button
       android:id="@+id/btn_4"
+      android:text="开始"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      />
+  <Button
+      android:id="@+id/btn_5"
       android:text="跳转"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"

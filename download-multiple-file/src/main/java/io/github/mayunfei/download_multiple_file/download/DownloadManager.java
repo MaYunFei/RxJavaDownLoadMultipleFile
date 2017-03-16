@@ -8,7 +8,9 @@ import android.widget.Toast;
 import io.github.mayunfei.download_multiple_file.db.DownloadDao;
 import io.github.mayunfei.download_multiple_file.entity.TaskBundle;
 import io.github.mayunfei.download_multiple_file.entity.TaskStatus;
+import io.github.mayunfei.download_multiple_file.utils.FileUtils;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -65,7 +67,7 @@ public class DownloadManager {
     //下载api
     mDownloadApi = mRetrofit.create(DownloadApi.class);
 
-    mCurrentTaskList = new HashMap<>();
+    mCurrentTaskList = new LinkedHashMap<>();
   }
 
   private OkHttpClient getOkHttpClient() {
@@ -115,7 +117,7 @@ public class DownloadManager {
     }
   }
 
-  public Observable<List<TaskBundle>> getObservableAllTaskBundle(){
+  public Observable<List<TaskBundle>> getObservableAllTaskBundle() {
     return mDao.selectAllTaskBundle();
   }
 
@@ -128,7 +130,7 @@ public class DownloadManager {
     if (!mThreadQueue.contains(downloadTask)) {
       mExecutor.execute(downloadTask);
     }
-    if (mExecutor.getTaskCount()> mThreadCount) {
+    if (mExecutor.getTaskCount() > mThreadCount) {
       downloadTask.queue();
     }
   }
@@ -142,6 +144,53 @@ public class DownloadManager {
       downloadTask.pause();
     } else {
       Log.e("DownLoadManager", "必须先启动下载才能暂停");
+    }
+  }
+
+  public void cancel(String key) {
+    DownloadTask downloadTask = mCurrentTaskList.get(key);
+    if (downloadTask != null) {
+      downloadTask.pause();
+      //线程中移除
+      mThreadQueue.remove(downloadTask);
+      mCurrentTaskList.remove(key);
+    }
+    //io线程删除
+    TaskBundle bundle = mDao.getBundleByKey(key);
+    if (bundle != null) {
+      mDao.deleteBundleByKey(bundle);
+      FileUtils.deleteDir(bundle.getFilePath());
+    }
+  }
+
+  /**
+   * 全部暂停
+   */
+  public void pauseAll() {
+    for (DownloadTask downloadTask : mCurrentTaskList.values()) {
+      if (downloadTask != null) {
+        if (mThreadQueue.contains(downloadTask)) {
+          mThreadQueue.remove(downloadTask);
+        }
+        downloadTask.pause();
+      } else {
+        Log.e("DownLoadManager", "必须先启动下载才能暂停");
+      }
+    }
+  }
+
+  /**
+   * 全部开始
+   */
+  public void startAll() {
+    if (mCurrentTaskList.size() == 0) {
+      List<TaskBundle> canDownLoadBundle = mDao.getCanDownLoadBundle();
+      for (TaskBundle taskBundle : canDownLoadBundle) {
+        addTaskBundle(taskBundle);
+      }
+    }
+    for (DownloadTask downloadTask : mCurrentTaskList.values()) {
+      addTaskBundle(downloadTask.getTaskBundle());
     }
   }
 }

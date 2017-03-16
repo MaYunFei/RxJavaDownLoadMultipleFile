@@ -1,5 +1,6 @@
 package io.github.mayunfei.downloadmultiplefile;
 
+import android.support.v4.widget.ContentLoadingProgressBar;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -16,6 +17,7 @@ public class DownLoadItem implements AdapterItem<TaskBundle> {
 
   Button btn_status;
   TextView tv_key;
+  ContentLoadingProgressBar progress;
 
   @Override public int getLayoutResId() {
     return R.layout.downloaditem;
@@ -24,6 +26,7 @@ public class DownLoadItem implements AdapterItem<TaskBundle> {
   @Override public void bindViews(View view) {
     btn_status = (Button) view.findViewById(R.id.btn_status);
     tv_key = (TextView) view.findViewById(R.id.tv_key);
+    progress = (ContentLoadingProgressBar) view.findViewById(R.id.progress);
   }
 
   @Override public void setViews() {
@@ -32,6 +35,8 @@ public class DownLoadItem implements AdapterItem<TaskBundle> {
 
   @Override public void handleData(final TaskBundle taskBundle, int i) {
     tv_key.setText(taskBundle.getKey());
+    progress.setMax(taskBundle.getTotalSize());
+    progress.setProgress(taskBundle.getCompleteSize());
     switch (taskBundle.getStatus()) {
       case TaskStatus.STATUS_START:
       case TaskStatus.STATUS_INIT:

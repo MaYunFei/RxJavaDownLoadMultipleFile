@@ -230,18 +230,6 @@ public class DownloadDao {
     }
   }
 
-  public static final String COLUMN_KEY = "key";
-  public static final String COLUMN_FILEPATH = "filePath";
-  public static final String COLUMN_TOTAL_SIZE = "totalSize";
-  public static final String COLUMN_COMPLETED_SIZE = "completeSize";
-  public static final String COLUMN_STATUS = "status";
-  public static final String COLUMN_IS_INIT = "status";
-  public static final String COLUMN_M3U8 = "m3u8";
-  public static final String COLUMN_HTML = "html";
-  public static final String COLUMN_ARG0 = "arg0";
-  public static final String COLUMN_ARG1 = "arg1";
-  public static final String COLUMN_ARG2 = "arg2";
-
   private TaskBundle getTaskBundle(Cursor cursor) {
     int bundleId = DBHelper.getInt(cursor, TaskBundle.COLUMN_BUNDLE_ID);
     String key = DBHelper.getString(cursor, TaskBundle.COLUMN_KEY);
@@ -308,5 +296,47 @@ public class DownloadDao {
     }
     cursor.close();
     return maxId;
+  }
+
+  public TaskBundle getBundleByKey(String key) {
+    Cursor cursor = db.query("SELECT * FROM " + TaskBundle.COLUMN_KEY + "=?", key);
+    if (cursor.moveToFirst()) {
+      TaskBundle taskBundle = getTaskBundle(cursor);
+      cursor.close();
+      return taskBundle;
+    }
+    cursor.close();
+    return null;
+  }
+
+  /**
+   * 删除数据
+   */
+  public void deleteBundleByKey(TaskBundle bundle) {
+    BriteDatabase.Transaction transaction = db.newTransaction();
+    db.delete(TaskBundle.TASK_BUNDLE_TABLE_NAME, TaskBundle.COLUMN_KEY + "=?", bundle.getKey());
+    db.delete(TaskEntity.TASK_TABLE_NAME, TaskEntity.COLUMN_TASK_BUNDLE_ID + "=?",
+        bundle.getBundleId() + "");
+    transaction.markSuccessful();
+    transaction.end();
+  }
+
+  public List<TaskBundle> getCanDownLoadBundle() {
+    Cursor cursor = db.query("SELECT * FROM "
+        + TaskBundle.TASK_BUNDLE_TABLE_NAME
+        + " WHERE "
+        + TaskBundle.COLUMN_STATUS
+        + "!="
+        + TaskBundle.COLUMN_FILEPATH);
+
+    List<TaskEntity> taskEntityList = new ArrayList<>();
+
+    List<TaskBundle> list = new ArrayList<TaskBundle>();
+
+    while (cursor.moveToNext()) {
+      list.add(getTaskBundle(cursor));
+    }
+    cursor.close();
+    return list;
   }
 }

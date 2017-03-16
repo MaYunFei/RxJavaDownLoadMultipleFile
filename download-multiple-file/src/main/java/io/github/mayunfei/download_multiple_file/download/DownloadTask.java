@@ -106,8 +106,9 @@ public class DownloadTask implements Runnable {
         }
       }
 
+      //解析html
       if (!TextUtils.isEmpty(mTaskBundle.getHtml())) {
-        HtmlParser htmlParser = new HtmlParser(mDownloadApi, mTaskBundle.getM3u8());
+        HtmlParser htmlParser = new HtmlParser(mDownloadApi, mTaskBundle.getHtml());
         if (!htmlParser.parseTask(mTaskBundle)) {
           //过滤暂停状态
           if (mTaskBundle.getStatus() != TaskStatus.STATUS_PAUSE
