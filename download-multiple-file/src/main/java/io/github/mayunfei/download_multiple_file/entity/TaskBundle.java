@@ -16,7 +16,9 @@ public class TaskBundle {
   public static final String COLUMN_TOTAL_SIZE = "totalSize";
   public static final String COLUMN_COMPLETED_SIZE = "completeSize";
   public static final String COLUMN_STATUS = "status";
-  public static final String COLUMN_IS_INIT = "status";
+  public static final String COLUMN_IS_INIT = "isInit";
+  public static final String COLUMN_M3U8 = "m3u8";
+  public static final String COLUMN_HTML = "html";
   public static final String COLUMN_ARG0 = "arg0";
   public static final String COLUMN_ARG1 = "arg1";
   public static final String COLUMN_ARG2 = "arg2";
@@ -42,6 +44,10 @@ public class TaskBundle {
       + " BOOLEAN NOT NULL CHECK ("
       + COLUMN_IS_INIT
       + " IN (0,1)),"
+      + COLUMN_M3U8
+      + " TEXT,"
+      + COLUMN_HTML
+      + " TEXT,"
       + COLUMN_ARG0
       + " TEXT,"
       + COLUMN_ARG1
@@ -50,7 +56,7 @@ public class TaskBundle {
       + " TEXT"
       + ");";
 
-  private int bundleId;
+  private int bundleId = -1;
   //唯一值
   private String key;
   private String filePath;
@@ -59,9 +65,80 @@ public class TaskBundle {
   private int status;
   private boolean isInit;
   private List<TaskEntity> taskList;
+  private String m3u8;
+  private String html;
   private String arg0;
   private String arg1;
   private String arg2;
+
+  private TaskBundle(Builder builder) {
+    setBundleId(builder.bundleId);
+    setKey(builder.key);
+    setFilePath(builder.filePath);
+    setTotalSize(builder.totalSize);
+    setCompleteSize(builder.completeSize);
+    setStatus(builder.status);
+    setInit(builder.isInit);
+    setM3u8(builder.m3u8);
+    setHtml(builder.html);
+    setArg0(builder.arg0);
+    setArg1(builder.arg1);
+    setArg2(builder.arg2);
+  }
+
+  @Override public String toString() {
+    String tmpStatus = "";
+    switch (status) {
+      case TaskStatus.STATUS_START:
+        tmpStatus = "开始";
+        break;
+      case TaskStatus.STATUS_INIT:
+        tmpStatus = "初始化";
+        break;
+      case TaskStatus.STATUS_CANCEL:
+        tmpStatus = "取消";
+        break;
+      case TaskStatus.STATUS_QUEUE:
+        tmpStatus = "等待";
+        break;
+      case TaskStatus.STATUS_CONNECTING:
+        tmpStatus = "连接";
+        break;
+      case TaskStatus.STATUS_PAUSE:
+        tmpStatus = "暂停";
+        break;
+      case TaskStatus.STATUS_ERROR_NET:
+        tmpStatus = "网络错误";
+        break;
+      case TaskStatus.STATUS_ERROR_STORAGE:
+        tmpStatus = "文件错误";
+        break;
+      case TaskStatus.STATUS_FINISHED:
+        tmpStatus = "完成";
+        break;
+    }
+
+    return "TaskBundle{" +
+        "bundleId=" + bundleId +
+        ", key='" + key + '\'' +
+        ", totalSize=" + totalSize +
+        ", completeSize=" + completeSize +
+        ", status=" + tmpStatus +
+        ", filePath='" + filePath + '\'' +
+        ", isInit=" + isInit +
+        ", taskList=" + taskList +
+        ", m3u8='" + m3u8 + '\'' +
+        ", html='" + html + '\'' +
+        '}';
+  }
+
+  public TaskBundle() {
+
+  }
+
+  public static Builder newBuilder() {
+    return new Builder();
+  }
 
   public int getBundleId() {
     return bundleId;
@@ -127,6 +204,22 @@ public class TaskBundle {
     isInit = init;
   }
 
+  public String getM3u8() {
+    return m3u8;
+  }
+
+  public void setM3u8(String m3u8) {
+    this.m3u8 = m3u8;
+  }
+
+  public String getHtml() {
+    return html;
+  }
+
+  public void setHtml(String html) {
+    this.html = html;
+  }
+
   public String getArg0() {
     return arg0;
   }
@@ -149,5 +242,102 @@ public class TaskBundle {
 
   public void setArg2(String arg2) {
     this.arg2 = arg2;
+  }
+
+  public void init(TaskBundle taskBundle) {
+    bundleId = taskBundle.bundleId;
+    key = taskBundle.key;
+    filePath = taskBundle.filePath;
+    totalSize = taskBundle.totalSize;
+    completeSize = taskBundle.completeSize;
+    status = taskBundle.status;
+    isInit = taskBundle.isInit;
+    m3u8 = taskBundle.m3u8;
+    html = taskBundle.html;
+    arg0 = taskBundle.arg0;
+    arg1 = taskBundle.arg1;
+    arg2 = taskBundle.arg2;
+  }
+
+  public static final class Builder {
+    private int bundleId = -1;
+    private String key;
+    private String filePath;
+    private int totalSize;
+    private int completeSize;
+    private int status;
+    private boolean isInit;
+    private String m3u8;
+    private String html;
+    private String arg0;
+    private String arg1;
+    private String arg2;
+
+    private Builder() {
+    }
+
+    public Builder bundleId(int val) {
+      bundleId = val;
+      return this;
+    }
+
+    public Builder key(String val) {
+      key = val;
+      return this;
+    }
+
+    public Builder filePath(String val) {
+      filePath = val;
+      return this;
+    }
+
+    public Builder totalSize(int val) {
+      totalSize = val;
+      return this;
+    }
+
+    public Builder completeSize(int val) {
+      completeSize = val;
+      return this;
+    }
+
+    public Builder status(int val) {
+      status = val;
+      return this;
+    }
+
+    public Builder isInit(boolean val) {
+      isInit = val;
+      return this;
+    }
+
+    public Builder m3u8(String val) {
+      m3u8 = val;
+      return this;
+    }
+
+    public Builder html(String val) {
+      html = val;
+      return this;
+    }
+
+    public Builder arg0(String val) {
+      arg0 = val;
+      return this;
+    }
+
+    public Builder arg1(String val) {
+      arg1 = val;
+      return this;
+    }
+
+    public Builder arg2(String val) {
+      arg2 = val;
+      return this;
+    }
+
+    public TaskBundle build() {
+      return new TaskBundle(this);
+    }
   }
 }

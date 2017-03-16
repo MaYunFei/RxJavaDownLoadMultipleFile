@@ -3,10 +3,12 @@ package io.github.mayunfei.download_multiple_file.download;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.text.TextUtils;
 import io.github.mayunfei.download_multiple_file.db.DownloadDao;
 import io.github.mayunfei.download_multiple_file.entity.TaskBundle;
 import io.github.mayunfei.download_multiple_file.entity.TaskEntity;
 import io.github.mayunfei.download_multiple_file.entity.TaskStatus;
+import io.github.mayunfei.download_multiple_file.parser.HtmlParser;
 import io.github.mayunfei.download_multiple_file.parser.M3u8Parser;
 import io.github.mayunfei.download_multiple_file.utils.IOUtils;
 import io.github.mayunfei.download_multiple_file.utils.L;
@@ -92,8 +94,8 @@ public class DownloadTask implements Runnable {
       return;
     }
     if (!mTaskBundle.isInit()) {
-      if (mTaskBundle.getArg0() != null) {
-        M3u8Parser m3u8Parser = new M3u8Parser(mDownloadApi, mTaskBundle.getArg0());
+      if (!TextUtils.isEmpty(mTaskBundle.getM3u8())) {
+        M3u8Parser m3u8Parser = new M3u8Parser(mDownloadApi, mTaskBundle.getM3u8());
         if (!m3u8Parser.parseTask(mTaskBundle)) {
           //过滤暂停状态
           if (mTaskBundle.getStatus() != TaskStatus.STATUS_PAUSE
@@ -101,6 +103,30 @@ public class DownloadTask implements Runnable {
             updateStatus(TaskStatus.STATUS_ERROR_NET);
           }
           return;
+        }
+      }
+
+      if (!TextUtils.isEmpty(mTaskBundle.getHtml())) {
+        HtmlParser htmlParser = new HtmlParser(mDownloadApi, mTaskBundle.getM3u8());
+        if (!htmlParser.parseTask(mTaskBundle)) {
+          //过滤暂停状态
+          if (mTaskBundle.getStatus() != TaskStatus.STATUS_PAUSE
+              && mTaskBundle.getStatus() != TaskStatus.STATUS_CANCEL) {
+            updateStatus(TaskStatus.STATUS_ERROR_NET);
+          }
+          return;
+        }
+      }
+    } else { //防止出现 没有任务的状态
+      if (mTaskBundle.getTaskList() == null || mTaskBundle.getTaskList().size() == 0) {
+        if (mDao.isExistTaskEntity(mTaskBundle.getBundleId())) {
+          List<TaskEntity> taskEntityList =
+              mDao.getTaskEntityListByBundleId(mTaskBundle.getBundleId());
+          if (mTaskBundle.getTaskList() == null) {
+            mTaskBundle.setTaskList(taskEntityList);
+          } else {
+            mTaskBundle.getTaskList().addAll(taskEntityList);
+          }
         }
       }
     }
@@ -116,6 +142,9 @@ public class DownloadTask implements Runnable {
     List<TaskEntity> taskList = mTaskBundle.getTaskList();
     for (int i = 0; i < taskList.size() && !isCancel(); i++) {
       TaskEntity taskEntity = taskList.get(i);
+      //已经下载就不需要下载
+      if (taskEntity.isFinish()) continue;
+
       //真正下载
       downloadFile(taskEntity);
 
@@ -133,7 +162,9 @@ public class DownloadTask implements Runnable {
 
   private boolean isCancel() {
     return mTaskBundle.getStatus() == TaskStatus.STATUS_PAUSE
-        || mTaskBundle.getStatus() == TaskStatus.STATUS_CANCEL;
+        || mTaskBundle.getStatus() == TaskStatus.STATUS_CANCEL
+        || mTaskBundle.getStatus() == TaskStatus.STATUS_ERROR_NET
+        || mTaskBundle.getStatus() == TaskStatus.STATUS_ERROR_STORAGE;
   }
 
   private void downloadFile(TaskEntity mTaskEntity) {
@@ -217,10 +248,10 @@ public class DownloadTask implements Runnable {
     //  case TaskStatus.STATUS_CONNECTING:
     //  case TaskStatus.STATUS_ERROR_NET:
     //  case TaskStatus.STATUS_ERROR_STORAGE:
-    //    mDao.UpdateTaskBundle(mTaskBundle);
+    //    mDao.updateTaskBundle(mTaskBundle);
     //    break;
     //}
-    mDao.UpdateTaskBundle(mTaskBundle);
+    mDao.updateTaskBundle(mTaskBundle);
     mHandler.sendEmptyMessage(status);
   }
 

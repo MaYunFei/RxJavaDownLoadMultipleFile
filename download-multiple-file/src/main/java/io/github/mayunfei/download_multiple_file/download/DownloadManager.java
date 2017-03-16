@@ -9,12 +9,14 @@ import io.github.mayunfei.download_multiple_file.db.DownloadDao;
 import io.github.mayunfei.download_multiple_file.entity.TaskBundle;
 import io.github.mayunfei.download_multiple_file.entity.TaskStatus;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
+import rx.Observable;
 
 /**
  * Created by mayunfei on 17-3-15.
@@ -22,7 +24,7 @@ import retrofit2.Retrofit;
 
 public class DownloadManager {
 
-  private static final int DEF_THREAD_COUNT = 1;
+  private static final int DEF_THREAD_COUNT = 3;
   //请求
   private Retrofit mRetrofit;
   private DownloadApi mDownloadApi;
@@ -84,6 +86,7 @@ public class DownloadManager {
     //插入数据库
     DownloadTask currentTask = mCurrentTaskList.get(taskBundle.getKey());
     if (currentTask != null) {
+      taskBundle.init(currentTask.getTaskBundle());
       addDownLoadTask(currentTask);
     } else {
       DownloadTask downloadTask = new DownloadTask();
@@ -112,15 +115,20 @@ public class DownloadManager {
     }
   }
 
+  public Observable<List<TaskBundle>> getObservableAllTaskBundle(){
+    return mDao.selectAllTaskBundle();
+  }
+
   private void addDownLoadTask(@NonNull DownloadTask downloadTask) {
 
     TaskBundle taskBundle = downloadTask.getTaskBundle();
     if (taskBundle == null || taskBundle.getStatus() == TaskStatus.STATUS_FINISHED) return;
+    downloadTask.start();
     mCurrentTaskList.put(taskBundle.getKey(), downloadTask);
     if (!mThreadQueue.contains(downloadTask)) {
       mExecutor.execute(downloadTask);
     }
-    if (mExecutor.getTaskCount() > mThreadCount) {
+    if (mExecutor.getTaskCount()> mThreadCount) {
       downloadTask.queue();
     }
   }

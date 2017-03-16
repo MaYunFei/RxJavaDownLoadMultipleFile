@@ -24,7 +24,7 @@ import rx.functions.Func1;
  */
 
 public class M3u8Parser implements TaskParser {
-  private static final String M3U8PATH = File.separator + "m3u8" + File.separator;
+  private static final String M3U8PATH = "m3u8" + File.separator;
   DownloadApi downloadApi;
   String url;
   static final String EXTINF_TAG_PREFIX = "#EXTINF";
@@ -48,7 +48,8 @@ public class M3u8Parser implements TaskParser {
       }
       if (response.isSuccessful()) {
         String m3u8Str = response.body().string();
-        saveFile(taskBundle.getFilePath(), m3u8Str);
+        if (!saveFile(taskBundle.getFilePath(), m3u8Str)) return false;
+
         Scanner scanner = new Scanner(m3u8Str).useDelimiter(EXTINF_TAG_PREFIX);
         if (scanner.hasNext()) {
           String info = scanner.next();

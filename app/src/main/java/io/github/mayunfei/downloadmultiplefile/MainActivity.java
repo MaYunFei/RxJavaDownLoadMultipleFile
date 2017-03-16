@@ -16,91 +16,49 @@ import io.github.mayunfei.download_multiple_file.entity.TaskBundle;
 import io.github.mayunfei.download_multiple_file.entity.TaskEntity;
 import io.github.mayunfei.download_multiple_file.entity.TaskStatus;
 import io.github.mayunfei.download_multiple_file.utils.FileUtils;
+import io.github.mayunfei.download_multiple_file.utils.L;
 import java.util.ArrayList;
 import java.util.List;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
   private static final int MY_PERMISSIONS_REQUEST_CALL_PHONE = 1;
   private Button mBtn1;
+  private Button mBtn2;
+  private Button mBtn3;
+  private Button mBtn4;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
     mBtn1 = ((Button) findViewById(R.id.btn_1));
+    mBtn2 = ((Button) findViewById(R.id.btn_2));
+    mBtn3 = ((Button) findViewById(R.id.btn_3));
+    mBtn4 = ((Button) findViewById(R.id.btn_4));
 
+    mBtn4.setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        DownloadListActivity.startDownloadActivity(MainActivity.this);
+      }
+    });
     if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
         != PackageManager.PERMISSION_GRANTED) {
       ActivityCompat.requestPermissions(this,
           new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE },
           MY_PERMISSIONS_REQUEST_CALL_PHONE);
     }
+
     //daoTest();
+    mBtn2.setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        DownloadManager.getInstance().pause("456");
+      }
+    });
     mBtn1.setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         testDownloadManager();
-        DownloadManager.getInstance().bindListener("456", new DownloadTaskListener() {
-          @Override public void onQueue(TaskBundle bundle) {
-
-          }
-
-          @Override public void onConnecting(final TaskBundle bundle) {
-            mBtn1.setOnClickListener(new View.OnClickListener() {
-              @Override public void onClick(View v) {
-                DownloadManager.getInstance().pause(bundle.getKey());
-              }
-            });
-          }
-
-          @Override public void onStart(TaskBundle bundle) {
-
-          }
-
-          @Override public void onPause(TaskBundle bundle) {
-
-          }
-
-          @Override public void onCancel(TaskBundle bundle) {
-
-          }
-
-          @Override public void onFinish(TaskBundle bundle) {
-
-          }
-
-          @Override public void onError(TaskBundle bundle, int code) {
-
-          }
-        });
-        //DownloadManager.getInstance().bindListener("456", new DownloadTaskListener() {
-        //  @Override public void onQueue(DownloadTask downloadTask) {
-        //
-        //  }
-        //
-        //  @Override public void onConnecting(DownloadTask downloadTask) {
-        //    DownloadManager.getInstance().pause("456");
-        //  }
-        //
-        //  @Override public void onStart(DownloadTask downloadTask) {
-        //
-        //  }
-        //
-        //  @Override public void onPause(DownloadTask downloadTask) {
-        //
-        //  }
-        //
-        //  @Override public void onCancel(DownloadTask downloadTask) {
-        //
-        //  }
-        //
-        //  @Override public void onFinish(DownloadTask downloadTask) {
-        //
-        //  }
-        //
-        //  @Override public void onError(DownloadTask downloadTask, int code) {
-        //
-        //  }
-        //});
-
       }
     });
   }
@@ -110,16 +68,27 @@ public class MainActivity extends AppCompatActivity {
     taskBundle.setStatus(TaskStatus.STATUS_INIT);
     taskBundle.setKey("456");
     taskBundle.setFilePath(FileUtils.getDefaultFilePath());
-    List<TaskEntity> taskEntityList = new ArrayList<>();
-    taskEntityList.add(
-        getTestTaskEntity(FileUtils.getDefaultFilePath(), "d704d5c7c226a371f8b34926f14330f0-000.ts",
-            "https://mv.dongaocloud.com/2b4f/2b51/d42/278/d704d5c7c226a371f8b34926f14330f0/d704d5c7c226a371f8b34926f14330f0-000.ts"));
-    taskEntityList.add(
-        getTestTaskEntity(FileUtils.getDefaultFilePath(), "CloudMusic_2.8.1_official_4.apk",
-            "http://s1.music.126.net/download/android/CloudMusic_2.8.1_official_4.apk"));
-    taskBundle.setTaskList(taskEntityList);
-    taskBundle.setArg0("https://md.dongaocloud.com/2b4f/2b52/5b3/81e/61e08244fcd53892b90031ee873de2b2/video.m3u8");
-    taskBundle.setTotalSize(taskBundle.getTaskList().size());
+    taskBundle.setM3u8(
+        "https://md.dongaocloud.com/2b4f/2b52/5b3/81e/61e08244fcd53892b90031ee873de2b2/video.m3u8");
+    taskBundle.setHtml("http://www.dongao.com/");
+    DownloadManager.getInstance().addTaskBundle(taskBundle);
+  }
+  void testDownloadManager2() {
+    TaskBundle taskBundle = new TaskBundle();
+    taskBundle.setStatus(TaskStatus.STATUS_INIT);
+    taskBundle.setKey("456");
+    taskBundle.setFilePath(FileUtils.getDefaultFilePath());
+    taskBundle.setM3u8(
+        "https://md.dongaocloud.com/2b4f/2b52/5b3/81e/61e08244fcd53892b90031ee873de2b2/video.m3u8");
+    DownloadManager.getInstance().addTaskBundle(taskBundle);
+  }
+  void testDownloadManage3() {
+    TaskBundle taskBundle = new TaskBundle();
+    taskBundle.setStatus(TaskStatus.STATUS_INIT);
+    taskBundle.setKey("456");
+    taskBundle.setFilePath(FileUtils.getDefaultFilePath());
+    taskBundle.setM3u8(
+        "https://md.dongaocloud.com/2b4f/2b52/5b3/81e/61e08244fcd53892b90031ee873de2b2/video.m3u8");
     DownloadManager.getInstance().addTaskBundle(taskBundle);
   }
 
@@ -132,7 +101,8 @@ public class MainActivity extends AppCompatActivity {
     TaskBundle taskBundle = new TaskBundle();
     taskBundle.setStatus(TaskStatus.STATUS_INIT);
     taskBundle.setKey("123");
-    taskBundle.setArg0("https://md.dongaocloud.com/2b4f/2b52/5b3/81e/61e08244fcd53892b90031ee873de2b2/video.m3u8");
+    taskBundle.setArg0(
+        "https://md.dongaocloud.com/2b4f/2b52/5b3/81e/61e08244fcd53892b90031ee873de2b2/video.m3u8");
     List<TaskEntity> taskEntityList = new ArrayList<>();
     taskEntityList.add(TaskEntity.newBuilder().url("123").build());
     taskBundle.setTaskList(taskEntityList);
