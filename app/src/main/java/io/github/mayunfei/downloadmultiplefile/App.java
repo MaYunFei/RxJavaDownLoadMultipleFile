@@ -10,7 +10,7 @@ import io.github.mayunfei.download_multiple_file.download.DownloadManager;
 public class App extends Application {
   @Override public void onCreate() {
     super.onCreate();
-    DownloadManager.getInstance().init(this, 5);
+    DownloadManager.getInstance().init(this, 3);
   }
 
 }

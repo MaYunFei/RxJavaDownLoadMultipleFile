@@ -137,6 +137,8 @@ public class DownloadTask implements Runnable {
       return;
     }
     mTaskBundle.setTotalSize(mTaskBundle.getTaskList().size());
+
+    //解析完成
     mTaskBundle.setInit(true);
     updateStatus(TaskStatus.STATUS_INIT);
     //开始下载

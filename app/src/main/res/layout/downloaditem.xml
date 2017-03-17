@@ -2,9 +2,18 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:gravity="center_vertical"
     android:orientation="horizontal"
     android:padding="6dp"
     >
+  <android.support.v7.widget.AppCompatCheckBox
+      android:id="@+id/checkbox"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginEnd="6dp"
+      android:layout_marginRight="6dp"
+      android:clickable="false"
+      />
   <LinearLayout
       android:layout_width="0dp"
       android:layout_height="wrap_content"
@@ -16,7 +25,6 @@
         android:id="@+id/tv_key"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
         android:text="@string/app_name"
         />
     <android.support.v4.widget.ContentLoadingProgressBar

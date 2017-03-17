@@ -1,12 +1,15 @@
 package io.github.mayunfei.downloadmultiplefile;
 
 import android.support.v4.widget.ContentLoadingProgressBar;
+import android.support.v7.widget.AppCompatCheckBox;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import io.github.mayunfei.download_multiple_file.download.DownloadManager;
 import io.github.mayunfei.download_multiple_file.entity.TaskBundle;
 import io.github.mayunfei.download_multiple_file.entity.TaskStatus;
+import java.util.HashMap;
+import java.util.List;
 import kale.adapter.item.AdapterItem;
 
 /**
@@ -15,9 +18,24 @@ import kale.adapter.item.AdapterItem;
 
 public class DownLoadItem implements AdapterItem<TaskBundle> {
 
+  public interface onCheckListener {
+    void onCheckClick(TaskBundle taskBundle);
+  }
+
   Button btn_status;
   TextView tv_key;
   ContentLoadingProgressBar progress;
+  AppCompatCheckBox checkBox;
+  HashMap<String,TaskBundle> checklist = new HashMap<>();
+  View rootView;
+
+  public DownLoadItem(HashMap<String, TaskBundle> checklist,
+      DownLoadItem.onCheckListener onCheckListener) {
+    this.checklist = checklist;
+    this.onCheckListener = onCheckListener;
+  }
+
+  private onCheckListener onCheckListener;
 
   @Override public int getLayoutResId() {
     return R.layout.downloaditem;
@@ -27,6 +45,8 @@ public class DownLoadItem implements AdapterItem<TaskBundle> {
     btn_status = (Button) view.findViewById(R.id.btn_status);
     tv_key = (TextView) view.findViewById(R.id.tv_key);
     progress = (ContentLoadingProgressBar) view.findViewById(R.id.progress);
+    checkBox = (AppCompatCheckBox) view.findViewById(R.id.checkbox);
+    rootView = view;
   }
 
   @Override public void setViews() {
@@ -34,6 +54,19 @@ public class DownLoadItem implements AdapterItem<TaskBundle> {
   }
 
   @Override public void handleData(final TaskBundle taskBundle, int i) {
+    if (checklist.containsKey(taskBundle.getKey())){
+      checkBox.setChecked(true);
+    }else {
+      checkBox.setChecked(false);
+    }
+    rootView.setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        if (onCheckListener!=null){
+          onCheckListener.onCheckClick(taskBundle);
+        }
+      }
+    });
+
     tv_key.setText(taskBundle.getKey());
     progress.setMax(taskBundle.getTotalSize());
     progress.setProgress(taskBundle.getCompleteSize());

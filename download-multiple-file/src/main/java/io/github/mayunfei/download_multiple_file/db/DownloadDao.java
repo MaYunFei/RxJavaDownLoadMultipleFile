@@ -11,6 +11,7 @@ import io.github.mayunfei.download_multiple_file.entity.TaskEntity;
 import io.github.mayunfei.download_multiple_file.utils.L;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import rx.Observable;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
@@ -187,10 +188,12 @@ public class DownloadDao {
     return contentValues;
   }
 
+
+
   public Observable<List<TaskBundle>> selectAllTaskBundle() {
     QueryObservable query = db.createQuery(TaskBundle.TASK_BUNDLE_TABLE_NAME,
         "SELECT * FROM " + TaskBundle.TASK_BUNDLE_TABLE_NAME);
-    return query.flatMap(new Func1<SqlBrite.Query, Observable<List<TaskBundle>>>() {
+    return query.debounce(500, TimeUnit.MICROSECONDS).flatMap(new Func1<SqlBrite.Query, Observable<List<TaskBundle>>>() {
       @Override public Observable<List<TaskBundle>> call(SqlBrite.Query query) {
         List<TaskBundle> list = new ArrayList<TaskBundle>();
 
@@ -299,7 +302,7 @@ public class DownloadDao {
   }
 
   public TaskBundle getBundleByKey(String key) {
-    Cursor cursor = db.query("SELECT * FROM " + TaskBundle.COLUMN_KEY + "=?", key);
+    Cursor cursor = db.query("SELECT * FROM "+TaskBundle.TASK_BUNDLE_TABLE_NAME+" WHERE " + TaskBundle.COLUMN_KEY + "=?", key);
     if (cursor.moveToFirst()) {
       TaskBundle taskBundle = getTaskBundle(cursor);
       cursor.close();

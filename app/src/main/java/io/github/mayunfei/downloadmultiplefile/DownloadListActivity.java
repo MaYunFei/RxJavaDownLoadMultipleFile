@@ -17,6 +17,7 @@ import io.github.mayunfei.download_multiple_file.entity.TaskBundle;
 import io.github.mayunfei.download_multiple_file.entity.TaskStatus;
 import io.github.mayunfei.download_multiple_file.utils.L;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import kale.adapter.CommonRcvAdapter;
 import kale.adapter.item.AdapterItem;
@@ -24,13 +25,15 @@ import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
-public class DownloadListActivity extends AppCompatActivity {
+public class DownloadListActivity extends AppCompatActivity
+    implements DownLoadItem.onCheckListener {
 
   private List<TaskBundle> list;
   private CommonRcvAdapter<TaskBundle> mAdapter;
   private RecyclerView recyclerView;
   private Button btn_bottom;
-  private MenuItem menu_edit;
+  private boolean isEdit = false;
+  private HashMap<String, TaskBundle> checkList;
 
   public static void startDownloadActivity(Context context) {
     context.startActivity(new Intent(context, DownloadListActivity.class));
@@ -43,12 +46,12 @@ public class DownloadListActivity extends AppCompatActivity {
     setContentView(R.layout.activity_download_list);
     recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
     btn_bottom = (Button) findViewById(R.id.btn_bottom);
-    menu_edit = (MenuItem) findViewById(R.id.action_download_list_edit);
     LinearLayoutManager layoutManager =
         new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
     layoutManager.setRecycleChildrenOnDetach(true);
     recyclerView.setLayoutManager(layoutManager);
     list = new ArrayList<>();
+    checkList = new HashMap<>();
     mSubscribe = DownloadManager.getInstance()
         .getObservableAllTaskBundle()
         .observeOn(AndroidSchedulers.mainThread())
@@ -84,6 +87,9 @@ public class DownloadListActivity extends AppCompatActivity {
                 });
               }
               recyclerView.getAdapter().notifyDataSetChanged();
+            }else {
+              list.clear();
+              recyclerView.getAdapter().notifyDataSetChanged();
             }
           }
         }, new Action1<Throwable>() {
@@ -94,7 +100,7 @@ public class DownloadListActivity extends AppCompatActivity {
 
     mAdapter = new CommonRcvAdapter<TaskBundle>(list) {
       public AdapterItem createItem(Object type) {
-        return new DownLoadItem();
+        return new DownLoadItem(checkList, DownloadListActivity.this);
       }
     };
     recyclerView.setAdapter(mAdapter);
@@ -110,17 +116,69 @@ public class DownloadListActivity extends AppCompatActivity {
     // Handle item selection
     switch (item.getItemId()) {
       case R.id.action_download_list_edit:
-        //显示删除
+        if (!isEdit) {
+          //变为编辑状态
+          clearCheck();
+          isEdit = true;
+          invalidateOptionsMenu();
+        } else {
+          //变为非编辑状态
+          //如果选中
+          if (checkList.size() > 0) {
+            //删除
+            for (String key : checkList.keySet()) {
+              DownloadManager.getInstance().cancel(key);
+            }
+          } else {
+            //不删除
+          }
+          clearCheck();
+          isEdit = false;
+
+          invalidateOptionsMenu();
+        }
         return true;
       default:
         return super.onOptionsItemSelected(item);
     }
   }
 
+  private void clearCheck() {
+    //清除选项
+    checkList.clear();
+    recyclerView.getAdapter().notifyDataSetChanged();
+  }
+
   @Override protected void onDestroy() {
     super.onDestroy();
     if (mSubscribe != null) {
       mSubscribe.unsubscribe();
+    }
+  }
+
+  @Override public boolean onPrepareOptionsMenu(Menu menu) {
+    MenuItem item = menu.findItem(R.id.action_download_list_edit);
+    if (isEdit) {
+      if (checkList.size() == 0) {
+        item.setTitle("完成");
+      } else {
+        item.setTitle("删除");
+      }
+    } else {
+      item.setTitle("编辑");
+    }
+    return super.onPrepareOptionsMenu(menu);
+  }
+
+  @Override public void onCheckClick(TaskBundle taskBundle) {
+    if (isEdit) {
+      if (checkList.containsKey(taskBundle.getKey())) {
+        checkList.remove(taskBundle.getKey());
+      } else {
+        checkList.put(taskBundle.getKey(), taskBundle);
+      }
+      invalidateOptionsMenu();
+      recyclerView.getAdapter().notifyDataSetChanged();
     }
   }
 }

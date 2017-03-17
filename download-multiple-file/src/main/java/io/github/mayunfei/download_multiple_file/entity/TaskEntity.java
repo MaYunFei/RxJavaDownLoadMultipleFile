@@ -1,5 +1,9 @@
 package io.github.mayunfei.download_multiple_file.entity;
 
+import android.database.Cursor;
+import io.github.mayunfei.download_multiple_file.db.DBHelper;
+import rx.functions.Func1;
+
 /**
  * 每一个小的下载任务
  * Created by yunfei on 17-3-14.
@@ -65,6 +69,29 @@ public class TaskEntity {
     setTotalSize(builder.totalSize);
     setCompletedSize(builder.completedSize);
   }
+
+  public static final Func1<Cursor, TaskEntity> MAPPER = new Func1<Cursor, TaskEntity>() {
+    @Override public TaskEntity call(Cursor cursor) {
+      int groupId = DBHelper.getInt(cursor, TaskEntity.COLUMN_TASK_BUNDLE_ID);
+      int taskId = DBHelper.getInt(cursor, TaskEntity.COLUMN_TASK_ID);
+      boolean isFinish = DBHelper.getBoolean(cursor, TaskEntity.COLUMN_IS_FINISH);
+      String url = DBHelper.getString(cursor, TaskEntity.COLUMN_URL);
+      String fileName = DBHelper.getString(cursor, TaskEntity.COLUMN_FILENAME);
+      String filePath = DBHelper.getString(cursor, TaskEntity.COLUMN_FILEPATH);
+      long totalSize = DBHelper.getLong(cursor, TaskEntity.COLUMN_TOTAL_SIZE);
+      long completedSize = DBHelper.getLong(cursor, TaskEntity.COLUMN_COMPLETED_SIZE);
+      return TaskEntity.newBuilder()
+          .taskBundleId(groupId)
+          .taskId(taskId)
+          .isFinish(isFinish)
+          .url(url)
+          .fileName(fileName)
+          .filePath(filePath)
+          .totalSize(totalSize)
+          .completedSize(completedSize)
+          .build();
+    }
+  };
 
   public static Builder newBuilder() {
     return new Builder();

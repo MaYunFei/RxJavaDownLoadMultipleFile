@@ -1,5 +1,6 @@
 package io.github.mayunfei.download_multiple_file.parser;
 
+import android.text.TextUtils;
 import io.github.mayunfei.download_multiple_file.download.DownloadApi;
 import io.github.mayunfei.download_multiple_file.entity.TaskBundle;
 import io.github.mayunfei.download_multiple_file.entity.TaskEntity;
@@ -108,6 +109,9 @@ public class HtmlParser implements TaskParser {
   private boolean saveFile(String path, String m3u8Str) {
     PrintWriter printWriter = null;
     String fileName = FileUtils.getFileNameFromUrl(url);
+    if (TextUtils.isEmpty(fileName)){
+      fileName = "index.html";
+    }
     File file = new File(path + HTMLPATH, fileName);
     try {
       if (!file.getParentFile().exists()) {

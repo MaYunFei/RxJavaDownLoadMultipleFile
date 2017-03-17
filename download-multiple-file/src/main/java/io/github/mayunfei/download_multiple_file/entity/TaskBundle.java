@@ -1,6 +1,9 @@
 package io.github.mayunfei.download_multiple_file.entity;
 
+import android.database.Cursor;
+import io.github.mayunfei.download_multiple_file.db.DBHelper;
 import java.util.List;
+import rx.functions.Func1;
 
 /**
  * 下载整体
@@ -85,6 +88,37 @@ public class TaskBundle {
     setArg1(builder.arg1);
     setArg2(builder.arg2);
   }
+
+  public static final Func1<Cursor, TaskBundle> MAPPER = new Func1<Cursor, TaskBundle>() {
+    @Override public TaskBundle call(Cursor cursor) {
+      int bundleId = DBHelper.getInt(cursor, TaskBundle.COLUMN_BUNDLE_ID);
+      String key = DBHelper.getString(cursor, TaskBundle.COLUMN_KEY);
+      String path = DBHelper.getString(cursor, TaskBundle.COLUMN_FILEPATH);
+      int totalSize = DBHelper.getInt(cursor, TaskBundle.COLUMN_TOTAL_SIZE);
+      int completedSize = DBHelper.getInt(cursor, TaskBundle.COLUMN_COMPLETED_SIZE);
+      int status = DBHelper.getInt(cursor, TaskBundle.COLUMN_STATUS);
+      boolean isInit = DBHelper.getBoolean(cursor, TaskBundle.COLUMN_IS_INIT);
+      String m3u8 = DBHelper.getString(cursor, TaskBundle.COLUMN_M3U8);
+      String html = DBHelper.getString(cursor, TaskBundle.COLUMN_HTML);
+      String arg0 = DBHelper.getString(cursor, TaskBundle.COLUMN_ARG0);
+      String arg1 = DBHelper.getString(cursor, TaskBundle.COLUMN_ARG1);
+      String arg2 = DBHelper.getString(cursor, TaskBundle.COLUMN_ARG2);
+      return TaskBundle.newBuilder()
+          .bundleId(bundleId)
+          .key(key)
+          .filePath(path)
+          .totalSize(totalSize)
+          .completeSize(completedSize)
+          .status(status)
+          .isInit(isInit)
+          .m3u8(m3u8)
+          .html(html)
+          .arg0(arg0)
+          .arg1(arg1)
+          .arg2(arg2)
+          .build();
+    }
+  };
 
   @Override public String toString() {
     String tmpStatus = "";
