@@ -34,6 +34,7 @@ public class DownloadTask implements Runnable {
   private TaskBundle mTaskBundle;
   private DownloadApi mDownloadApi;
   private DownloadTaskListener mListener;
+  private Call<ResponseBody> download;
 
   private Handler mHandler = new Handler(Looper.getMainLooper()) {
     @Override public void handleMessage(Message msg) {
@@ -148,9 +149,15 @@ public class DownloadTask implements Runnable {
       //已经下载就不需要下载
       if (taskEntity.isFinish()) continue;
 
+      if (isCancel()) {
+        break;
+      }
       //真正下载
       downloadFile(taskEntity);
 
+      if (isCancel()) {
+        break;
+      }
       if (!isCancel() && taskEntity.isFinish()) {
         //完成一部分 刷新UI
         mTaskBundle.setCompleteSize(mTaskBundle.getCompleteSize() + 1);
@@ -186,7 +193,7 @@ public class DownloadTask implements Runnable {
       tempFile.seek(completeSize);
       String range = "bytes=" + completeSize + "-";
 
-      Call<ResponseBody> download = mDownloadApi.download(range, mTaskEntity.getUrl());
+      download = mDownloadApi.download(range, mTaskEntity.getUrl());
 
       Response<ResponseBody> response = download.execute();
 
@@ -268,6 +275,9 @@ public class DownloadTask implements Runnable {
 
   public void pause() {
     updateStatus(TaskStatus.STATUS_PAUSE);
+    if (download != null) {
+      download.cancel();
+    }
   }
 
   public void queue() {

@@ -1,6 +1,7 @@
 package io.github.mayunfei.download_multiple_file.download;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -8,6 +9,7 @@ import android.widget.Toast;
 import io.github.mayunfei.download_multiple_file.db.DownloadDao;
 import io.github.mayunfei.download_multiple_file.entity.TaskBundle;
 import io.github.mayunfei.download_multiple_file.entity.TaskStatus;
+import io.github.mayunfei.download_multiple_file.services.DownloadService;
 import io.github.mayunfei.download_multiple_file.utils.FileUtils;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -38,9 +40,13 @@ public class DownloadManager {
   // task list
   private Map<String, DownloadTask> mCurrentTaskList;
   private int mThreadCount;
+  private Context mContext;
 
   private DownloadManager() {
+  }
 
+  public interface TaskListener {
+    void onAllTaskFinish();
   }
 
   public void init(Context context) {
@@ -52,9 +58,11 @@ public class DownloadManager {
   }
 
   public void init(Context context, int count, Retrofit retrofit) {
-    mDao = new DownloadDao(context);
+    mContext = context.getApplicationContext();
+    mDao = new DownloadDao(context.getApplicationContext());
+    mDao.pauseAll();
     mThreadCount = count;
-    mExecutor = new ThreadPoolExecutor(mThreadCount, mThreadCount, 20, TimeUnit.MILLISECONDS,
+    mExecutor = new ThreadPoolExecutor(mThreadCount, mThreadCount, 2000, TimeUnit.MILLISECONDS,
         new LinkedBlockingQueue<Runnable>());
     mThreadQueue = (LinkedBlockingQueue<Runnable>) mExecutor.getQueue();
     if (retrofit == null) {
@@ -66,7 +74,6 @@ public class DownloadManager {
     mRetrofit = retrofit;
     //下载api
     mDownloadApi = mRetrofit.create(DownloadApi.class);
-
     mCurrentTaskList = new LinkedHashMap<>();
   }
 
@@ -86,6 +93,7 @@ public class DownloadManager {
    */
   public void addTaskBundle(@NonNull TaskBundle taskBundle) {
     //插入数据库
+    startService();
     DownloadTask currentTask = mCurrentTaskList.get(taskBundle.getKey());
     if (currentTask != null) {
       taskBundle.init(currentTask.getTaskBundle());
@@ -97,9 +105,14 @@ public class DownloadManager {
       downloadTask.setDownloadApi(mDownloadApi);
       downloadTask.setRetrofit(mRetrofit);
       downloadTask.setTaskBundle(taskBundle);
-      downloadTask.start();
+
       addDownLoadTask(downloadTask);
     }
+  }
+
+  private void startService() {
+    Intent intent = new Intent(mContext, DownloadService.class);
+    mContext.startService(intent);
   }
 
   public void bindListener(@NonNull TaskBundle taskBundle,
@@ -121,10 +134,15 @@ public class DownloadManager {
     return mDao.selectAllTaskBundle();
   }
 
+  public Observable<List<TaskBundle>> getObservableDownloadingBundle() {
+    return mDao.getObservableDownloadingBundle();
+  }
+
   private void addDownLoadTask(@NonNull DownloadTask downloadTask) {
 
     TaskBundle taskBundle = downloadTask.getTaskBundle();
     if (taskBundle == null || taskBundle.getStatus() == TaskStatus.STATUS_FINISHED) return;
+    //这里添加是为了让数据库存在数据 并没有放到线程中去
     downloadTask.start();
     mCurrentTaskList.put(taskBundle.getKey(), downloadTask);
     if (!mThreadQueue.contains(downloadTask)) {

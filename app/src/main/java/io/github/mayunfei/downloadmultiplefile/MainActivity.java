@@ -1,6 +1,7 @@
 package io.github.mayunfei.downloadmultiplefile;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -15,6 +16,7 @@ import io.github.mayunfei.download_multiple_file.download.DownloadTaskListener;
 import io.github.mayunfei.download_multiple_file.entity.TaskBundle;
 import io.github.mayunfei.download_multiple_file.entity.TaskEntity;
 import io.github.mayunfei.download_multiple_file.entity.TaskStatus;
+import io.github.mayunfei.download_multiple_file.services.DownloadService;
 import io.github.mayunfei.download_multiple_file.utils.FileUtils;
 import io.github.mayunfei.download_multiple_file.utils.L;
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
   private Button mBtn3;
   private Button mBtn4;
   private Button mBtn5;
+  private Button mBtnStartService;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -39,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     mBtn3 = ((Button) findViewById(R.id.btn_3));
     mBtn4 = ((Button) findViewById(R.id.btn_4));
     mBtn5 = ((Button) findViewById(R.id.btn_5));
+    mBtnStartService = ((Button) findViewById(R.id.btn_start_service));
 
     mBtn5.setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
@@ -72,6 +76,12 @@ public class MainActivity extends AppCompatActivity {
     mBtn4.setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         testDownloadManager4();
+      }
+    });
+    mBtnStartService.setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        Intent intent = new Intent(MainActivity.this, DownloadService.class);
+        startService(intent);
       }
     });
   }

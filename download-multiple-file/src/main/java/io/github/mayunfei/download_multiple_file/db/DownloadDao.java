@@ -8,6 +8,7 @@ import com.squareup.sqlbrite.QueryObservable;
 import com.squareup.sqlbrite.SqlBrite;
 import io.github.mayunfei.download_multiple_file.entity.TaskBundle;
 import io.github.mayunfei.download_multiple_file.entity.TaskEntity;
+import io.github.mayunfei.download_multiple_file.entity.TaskStatus;
 import io.github.mayunfei.download_multiple_file.utils.L;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +58,9 @@ public class DownloadDao {
       } finally {
         transaction.end();
       }
+    } else {
+      TaskBundle bundleByKey = getBundleByKey(taskBundle.getKey());
+      taskBundle.init(bundleByKey);
     }
   }
 
@@ -97,6 +101,7 @@ public class DownloadDao {
    */
   public void updateTaskBundle(TaskBundle taskBundle) {
 
+    //更新 有可能是
     if (taskBundle.getTaskList() == null || taskBundle.getTaskList().size() == 0) {
       db.update(TaskBundle.TASK_BUNDLE_TABLE_NAME, getTaskBundleValues(taskBundle),
           TaskBundle.COLUMN_KEY + "=?", taskBundle.getKey());
@@ -188,23 +193,22 @@ public class DownloadDao {
     return contentValues;
   }
 
-
-
   public Observable<List<TaskBundle>> selectAllTaskBundle() {
     QueryObservable query = db.createQuery(TaskBundle.TASK_BUNDLE_TABLE_NAME,
         "SELECT * FROM " + TaskBundle.TASK_BUNDLE_TABLE_NAME);
-    return query.debounce(500, TimeUnit.MICROSECONDS).flatMap(new Func1<SqlBrite.Query, Observable<List<TaskBundle>>>() {
-      @Override public Observable<List<TaskBundle>> call(SqlBrite.Query query) {
-        List<TaskBundle> list = new ArrayList<TaskBundle>();
+    return query.debounce(500, TimeUnit.MICROSECONDS)
+        .flatMap(new Func1<SqlBrite.Query, Observable<List<TaskBundle>>>() {
+          @Override public Observable<List<TaskBundle>> call(SqlBrite.Query query) {
+            List<TaskBundle> list = new ArrayList<TaskBundle>();
 
-        Cursor cursor = query.run();
-        while (cursor.moveToNext()) {
-          list.add(getTaskBundle(cursor));
-        }
-        cursor.close();
-        return Observable.just(list);
-      }
-    });
+            Cursor cursor = query.run();
+            while (cursor.moveToNext()) {
+              list.add(getTaskBundle(cursor));
+            }
+            cursor.close();
+            return Observable.just(list);
+          }
+        });
   }
 
   public void close() {
@@ -222,7 +226,7 @@ public class DownloadDao {
         + "=?", bundleId + "");
 
     try {
-      if (cursor.moveToNext()) {
+      while (cursor.moveToNext()) {
         taskEntityList.add(getTaskEntity(cursor));
       }
       return taskEntityList;
@@ -302,7 +306,11 @@ public class DownloadDao {
   }
 
   public TaskBundle getBundleByKey(String key) {
-    Cursor cursor = db.query("SELECT * FROM "+TaskBundle.TASK_BUNDLE_TABLE_NAME+" WHERE " + TaskBundle.COLUMN_KEY + "=?", key);
+    Cursor cursor = db.query("SELECT * FROM "
+        + TaskBundle.TASK_BUNDLE_TABLE_NAME
+        + " WHERE "
+        + TaskBundle.COLUMN_KEY
+        + "=?", key);
     if (cursor.moveToFirst()) {
       TaskBundle taskBundle = getTaskBundle(cursor);
       cursor.close();
@@ -341,5 +349,38 @@ public class DownloadDao {
     }
     cursor.close();
     return list;
+  }
+
+  public Observable<List<TaskBundle>> getObservableDownloadingBundle() {
+    QueryObservable query = db.createQuery(TaskBundle.TASK_BUNDLE_TABLE_NAME, "SELECT * FROM "
+            + TaskBundle.TASK_BUNDLE_TABLE_NAME
+            + " WHERE "
+            + TaskBundle.COLUMN_STATUS
+            + " in (?,?,?)", TaskStatus.STATUS_CONNECTING + "", TaskStatus.STATUS_INIT + "",
+        TaskStatus.STATUS_START + "");
+    return query.debounce(500, TimeUnit.MICROSECONDS)
+        .flatMap(new Func1<SqlBrite.Query, Observable<List<TaskBundle>>>() {
+          @Override public Observable<List<TaskBundle>> call(SqlBrite.Query query) {
+            List<TaskBundle> list = new ArrayList<TaskBundle>();
+
+            Cursor cursor = query.run();
+            while (cursor.moveToNext()) {
+              list.add(getTaskBundle(cursor));
+            }
+            cursor.close();
+            return Observable.just(list);
+          }
+        });
+  }
+
+  public void pauseAll() {
+    db.execute("UPDATE "
+        + TaskBundle.TASK_BUNDLE_TABLE_NAME
+        + " SET "
+        + TaskBundle.COLUMN_STATUS
+        + " =? "
+        + " WHERE "
+        + TaskBundle.COLUMN_STATUS
+        + " !=? ", TaskStatus.STATUS_PAUSE + "", TaskStatus.STATUS_FINISHED);
   }
 }
