@@ -95,6 +95,36 @@ public class MainActivity extends AppCompatActivity {
         "https://md.dongaocloud.com/2b4f/2b52/5b3/81e/61e08244fcd53892b90031ee873de2b2/video.m3u8");
     taskBundle.setHtml("http://www.dongao.com/");
     DownloadManager.getInstance().addTaskBundle(taskBundle);
+    DownloadManager.getInstance().bindListener("task1", new DownloadTaskListener() {
+      @Override public void onQueue(TaskBundle bundle) {
+
+      }
+
+      @Override public void onConnecting(TaskBundle bundle) {
+
+      }
+
+      @Override public void onStart(TaskBundle bundle) {
+
+      }
+
+      @Override public void onPause(TaskBundle bundle) {
+
+      }
+
+      @Override public void onCancel(TaskBundle bundle) {
+
+      }
+
+      @Override public void onFinish(TaskBundle bundle) {
+
+      }
+
+      @Override public void onError(TaskBundle bundle, int code) {
+
+      }
+    });
+
   }
 
   void testDownloadManager2() {

@@ -1,5 +1,6 @@
 package io.github.mayunfei.download_multiple_file.download;
 
+import android.os.Environment;
 import io.github.mayunfei.download_multiple_file.db.DownloadDao;
 import io.github.mayunfei.download_multiple_file.entity.TaskEntity;
 import java.io.File;
@@ -51,6 +52,7 @@ public class RxFileDownload {
           BufferedSink sink = Okio.buffer(Okio.sink(file));
           // you can access body of response
           sink.writeAll(response.body().source());
+
           sink.close();
           subscriber.onNext(file);
           subscriber.onCompleted();

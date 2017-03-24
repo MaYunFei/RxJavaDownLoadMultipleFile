@@ -196,19 +196,18 @@ public class DownloadDao {
   public Observable<List<TaskBundle>> selectAllTaskBundle() {
     QueryObservable query = db.createQuery(TaskBundle.TASK_BUNDLE_TABLE_NAME,
         "SELECT * FROM " + TaskBundle.TASK_BUNDLE_TABLE_NAME);
-    return query.debounce(500, TimeUnit.MICROSECONDS)
-        .flatMap(new Func1<SqlBrite.Query, Observable<List<TaskBundle>>>() {
-          @Override public Observable<List<TaskBundle>> call(SqlBrite.Query query) {
-            List<TaskBundle> list = new ArrayList<TaskBundle>();
+    return query.flatMap(new Func1<SqlBrite.Query, Observable<List<TaskBundle>>>() {
+      @Override public Observable<List<TaskBundle>> call(SqlBrite.Query query) {
+        List<TaskBundle> list = new ArrayList<TaskBundle>();
 
-            Cursor cursor = query.run();
-            while (cursor.moveToNext()) {
-              list.add(getTaskBundle(cursor));
-            }
-            cursor.close();
-            return Observable.just(list);
-          }
-        });
+        Cursor cursor = query.run();
+        while (cursor.moveToNext()) {
+          list.add(getTaskBundle(cursor));
+        }
+        cursor.close();
+        return Observable.just(list);
+      }
+    }).debounce(500, TimeUnit.MICROSECONDS);
   }
 
   public void close() {

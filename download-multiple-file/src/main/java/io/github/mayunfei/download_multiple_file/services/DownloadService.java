@@ -51,6 +51,8 @@ public class DownloadService extends Service {
             L.e("service 错误  " + throwable.toString());
           }
         });
+
+
   }
 
   @Override public int onStartCommand(Intent intent, int flags, int startId) {
@@ -63,6 +65,7 @@ public class DownloadService extends Service {
 
   @Override public void onDestroy() {
     mSubscribe.unsubscribe();
+
     super.onDestroy();
   }
 
